@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{11DCF35A-6E2A-4C62-B536-14B83FF5AE07}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Test.CSF</RootNamespace>
+    <RootNamespace>Test.CSF.Caches</RootNamespace>
     <AssemblyName>Test.CSF</AssemblyName>
     <ReleaseVersion>1.0.0</ReleaseVersion>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -35,7 +35,6 @@
     <Reference Include="System" />
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-      <Package>nunit</Package>
     </Reference>
   </ItemGroup>
   <ItemGroup>
