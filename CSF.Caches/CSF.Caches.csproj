@@ -10,7 +10,9 @@
     <RootNamespace>CSF.Caches</RootNamespace>
     <AssemblyName>CSF.Caches</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <ReleaseVersion>1.0.0</ReleaseVersion>
+    <ReleaseVersion>1.0.1</ReleaseVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\CSF-Software-OSS.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,6 +43,9 @@
     <Compile Include="ICache.cs" />
     <Compile Include="ThreadSafeCache.cs" />
     <Compile Include="NotAvailableInCacheException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CSF.Caches.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
