@@ -2,14 +2,14 @@
 <package>
   <metadata>
     <id>CSF.Caches</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>CSF.Caches</title>
     <authors>CSF Software Ltd</authors>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://github.com/csf-dev/CSF.Caches</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Implementation of an in-memory synchronised cache, suitable for concurrent access.</description>
-    <copyright>Copyright 2016</copyright>
+    <copyright>Copyright 2018</copyright>
   </metadata>
   <files>
     <file src="bin/Release/CSF.Caches.dll" target="lib/net45" />
