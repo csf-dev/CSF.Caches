@@ -6,7 +6,7 @@
     <PackageId>CSF.Caches</PackageId>
     <Authors>craigfowler</Authors>
     <Description>Implementation of an in-memory synchronised cache, suitable for concurrent access.</Description>
-    <ReleaseVersion>1.0.2</ReleaseVersion>
+    <ReleaseVersion>2.0.0</ReleaseVersion>
     <Version>$(ReleaseVersion)</Version>
     <PackageVersion>$(ReleaseVersion)</PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
