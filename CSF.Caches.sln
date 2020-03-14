@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.CSF.Caches", "Test.CSF.Caches\Test.CSF.Caches.csproj", "{11DCF35A-6E2A-4C62-B536-14B83FF5AE07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSF.Caches.Tests", "CSF.Caches.Tests\CSF.Caches.Tests.csproj", "{11DCF35A-6E2A-4C62-B536-14B83FF5AE07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSF.Caches", "CSF.Caches\CSF.Caches.csproj", "{6644C95A-70A7-4A7B-903D-E087037FDA26}"
 EndProject
@@ -23,8 +23,6 @@ Global
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
 		$0.TextStylePolicy = $1
-		$1.TabWidth = 2
-		$1.IndentWidth = 2
 		$1.NoTabsAfterNonTabs = True
 		$1.scope = text/plain
 		$1.TabsToSpaces = True
@@ -157,6 +155,6 @@ Global
 		$25.NamingStyle = PascalCase
 		$25.IncludeInstanceMembers = True
 		$25.IncludeStaticEntities = True
-		version = 1.0.2
+		version = 2.0.0
 	EndGlobalSection
 EndGlobal
