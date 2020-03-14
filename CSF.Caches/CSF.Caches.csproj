@@ -5,8 +5,8 @@
         
     <PackageId>CSF.Caches</PackageId>
     <Authors>craigfowler</Authors>
-    <Description>Implementation of an in-memory synchronised cache, suitable for concurrent access.</Description>
-    <ReleaseVersion>1.0.2</ReleaseVersion>
+    <Description>A wrapper/adaper API around a System.Runtime.Caching.ObjectCache, making the cache easier to consume by types which do not care about caching strategies/policies.</Description>
+    <ReleaseVersion>2.0.0</ReleaseVersion>
     <Version>$(ReleaseVersion)</Version>
     <PackageVersion>$(ReleaseVersion)</PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -27,9 +27,6 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\CSF.Caches.xml</DocumentationFile>
   </PropertyGroup>
   
-  <ItemGroup>
-    <None Remove="CSF.Caches.nuspec" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Runtime.Caching" Version="4.7.0" />
   </ItemGroup>
