@@ -263,7 +263,7 @@ namespace CSF
         string GetCacheKey(TKey key)
         {
             if (ReferenceEquals(key, null))
-                throw new ArgumentNullException("A cache key object must not be be null.", nameof(key));
+                throw new ArgumentNullException(nameof(key), "A cache key object must not be be null.");
             var cacheKey = key.GetCacheKey();
             if (cacheKey == null)
                 throw new ArgumentException($"A cache key's {nameof(IGetsCacheKey.GetCacheKey)} must not return null.");

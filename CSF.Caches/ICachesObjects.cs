@@ -109,21 +109,6 @@ namespace CSF
         TValue Get(TKey key);
 
         /// <summary>
-        /// Gets an item from the cache using the specified key, or returns the default for the data-type if
-        /// no item exists with the specified key.
-        /// </summary>
-        /// <returns>A value from the cache, or the default for <typeparamref name="TValue"/>.</returns>
-        /// <param name="key">The key for which the value is to be cached.</param>
-        /// <exception cref="InvalidCastException">If the value stored for the specified key is not of type <typeparamref name="TValue"/>.</exception>
-        /// <exception cref="ArgumentNullException">
-        /// If the <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// If the <paramref name="key"/> returns <c>null</c> from its <see cref="IGetsCacheKey.GetCacheKey"/> method.
-        /// </exception>
-        TValue TryGet(TKey key);
-
-        /// <summary>
         /// Gets a collection of items which match the specified keys.
         /// Because it is not guaranteed that all the specified <paramref name="keys"/> exist within
         /// the cache, the returned collection may be smaller than the specified collection of keys.
@@ -137,7 +122,22 @@ namespace CSF
         /// If any item in the <paramref name="keys"/> collection returns <c>null</c> from its
         /// <see cref="IGetsCacheKey.GetCacheKey"/> method.
         /// </exception>
-        IEnumerable<CacheKeyAndItem<TKey,TValue>> Get(IEnumerable<TKey> keys);
+        IEnumerable<CacheKeyAndItem<TKey, TValue>> Get(IEnumerable<TKey> keys);
+
+        /// <summary>
+        /// Gets an item from the cache using the specified key, or returns the default for the data-type if
+        /// no item exists with the specified key.
+        /// </summary>
+        /// <returns>A value from the cache, or the default for <typeparamref name="TValue"/>.</returns>
+        /// <param name="key">The key for which the value is to be cached.</param>
+        /// <exception cref="InvalidCastException">If the value stored for the specified key is not of type <typeparamref name="TValue"/>.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// If the <paramref name="key"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// If the <paramref name="key"/> returns <c>null</c> from its <see cref="IGetsCacheKey.GetCacheKey"/> method.
+        /// </exception>
+        TValue TryGet(TKey key);
 
         /// <summary>
         /// Immediately removes an item from the cache using the specified key.
