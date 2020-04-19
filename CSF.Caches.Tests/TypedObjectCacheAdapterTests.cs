@@ -121,18 +121,22 @@ namespace CSF.Tests
         }
 
         [Test, AutoMoqData]
-        public void TryGet_returns_item_if_it_is_in_cache(Person person)
+        public void TryGet_returns_true_item_if_it_is_in_cache(Person person)
         {
             var sut = GetSut();
             sut.Add(person.GetKey(), person);
-            Assert.That(() => sut.TryGet(person.GetKey()), Is.EqualTo(person));
+            Person result = null;
+            Assert.That(() => sut.TryGet(person.GetKey(), out result), Is.True);
+            Assert.That(result, Is.SameAs(person));
         }
 
         [Test, AutoMoqData]
-        public void TryGet_returns_null_if_it_is_not_in_cache(Person person)
+        public void TryGet_returns_false_if_it_is_not_in_cache(Person person)
         {
             var sut = GetSut();
-            Assert.That(() => sut.TryGet(person.GetKey()), Is.Null);
+            Person result = null;
+            Assert.That(() => sut.TryGet(person.GetKey(), out result), Is.False);
+            Assert.That(result, Is.Not.SameAs(person));
         }
 
         [Test, AutoMoqData]

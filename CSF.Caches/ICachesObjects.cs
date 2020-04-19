@@ -137,7 +137,24 @@ namespace CSF
         /// <exception cref="ArgumentException">
         /// If the <paramref name="key"/> returns <c>null</c> from its <see cref="IGetsCacheKey.GetCacheKey"/> method.
         /// </exception>
+        [Obsolete("Instead, use bool TryGet(key, out item).  This overload will be removed in a future version.")]
         TValue TryGet(TKey key);
+
+        /// <summary>
+        /// Attempts to get an item from the cache using the specified key, returning a value
+        /// which indicates whether the item was retrieved successfully or not.
+        /// </summary>
+        /// <returns>A value which indicates whether the retrieval was a success or not.</returns>
+        /// <param name="key">The key for which the value is to be cached.</param>
+        /// <param name="item">The item retrieved from the cache.  This value is meaningless if the method returned <c>false</c>.</param>
+        /// <exception cref="InvalidCastException">If the value stored for the specified key is not of type <typeparamref name="TValue"/>.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// If the <paramref name="key"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// If the <paramref name="key"/> returns <c>null</c> from its <see cref="IGetsCacheKey.GetCacheKey"/> method.
+        /// </exception>
+        bool TryGet(TKey key, out TValue item);
 
         /// <summary>
         /// Immediately removes an item from the cache using the specified key.
