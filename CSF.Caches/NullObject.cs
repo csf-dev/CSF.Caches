@@ -38,7 +38,7 @@ namespace CSF
         /// <param name="other">The <see cref="NullObject"/> to compare with the current <see cref="NullObject"/>.</param>
         /// <returns><c>true</c> if the specified <see cref="NullObject"/> is equal to the current
         /// <see cref="NullObject"/>; otherwise, <c>false</c>.</returns>
-        public bool Equals(NullObject other) => other is NullObject;
+        public bool Equals(NullObject other) => !(other is null);
 
         /// <summary>
         /// Determines whether the specified <see cref="object"/> is equal to the current <see cref="NullObject"/>.
