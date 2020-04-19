@@ -59,7 +59,7 @@ namespace CSF
         public void Add(TKey key, TValue value)
         {
             var cacheKey = GetCacheKey(key);
-            var result = cache.Add(cacheKey, value, GetPolicy(key, value), region);
+            var result = cache.Add(cacheKey, GetObjectToStore(value), GetPolicy(key, value), region);
             if (!result)
                 throw new InvalidCacheOperationException($"Cannot add to the cache because an item already exists with the key '{cacheKey}'.");
         }
@@ -78,7 +78,7 @@ namespace CSF
         public void AddOrReplace(TKey key, TValue value)
         {
             var cacheKey = GetCacheKey(key);
-            cache.Set(cacheKey, value, GetPolicy(key, value), region);
+            cache.Set(cacheKey, GetObjectToStore(value), GetPolicy(key, value), region);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace CSF
             object result = cache.Get(cacheKey, region);
             if(ReferenceEquals(result, null))
                 throw new InvalidCacheOperationException($"Cannot get an item with the key '{cacheKey}' because no such item exists in the cache.");
-            return (TValue) result;
+            return GetObjectToRetrieve(result);
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace CSF
                 .Select(kvp =>
                 {
                     var key = cacheKeys[kvp.Key];
-                    var value = (TValue)kvp.Value;
+                    var value = GetObjectToRetrieve(kvp.Value);
                     return new CacheKeyAndItem<TKey, TValue>(key, value);
                 })
                 .ToArray();
@@ -178,12 +178,12 @@ namespace CSF
                 syncRoot.EnterUpgradeableReadLock();
 
                 if (cache.Contains(cacheKey, region))
-                    return (TValue)cache.Get(cacheKey, region);
+                    return GetObjectToRetrieve(cache.Get(cacheKey, region));
 
                 syncRoot.EnterWriteLock();
 
                 var newItem = valueCreator(key);
-                var addResult = cache.Add(cacheKey, newItem, GetPolicy(key, newItem), region);
+                var addResult = cache.Add(cacheKey, GetObjectToStore(newItem), GetPolicy(key, newItem), region);
                 if (!addResult)
                     throw new InvalidCacheOperationException($"{nameof(GetOrAdd)} did not find an item in the cache for key '{cacheKey}' but was unable to add one either.  Possible concurrent change to underlying cache?");
 
@@ -232,7 +232,7 @@ namespace CSF
         public bool TryAdd(TKey key, TValue value)
         {
             var cacheKey = GetCacheKey(key);
-            return cache.Add(cacheKey, value, GetPolicy(key, value), region);
+            return cache.Add(cacheKey, GetObjectToStore(value), GetPolicy(key, value), region);
         }
 
         /// <summary>
@@ -272,10 +272,10 @@ namespace CSF
         public bool TryGet(TKey key, out TValue item)
         {
             var cacheKey = GetCacheKey(key);
-            object result = cache.Get(cacheKey, region);
+            var result = cache.Get(cacheKey, region);
             var success = !ReferenceEquals(result, null);
 
-            item = success ? (TValue)result : default(TValue);
+            item = success ? GetObjectToRetrieve(result) : default(TValue);
             return success;
         }
 
@@ -303,6 +303,22 @@ namespace CSF
         /// <param name="value">The item value.</param>
         CacheItemPolicy GetPolicy(TKey key, TValue value)
             => policyProvider(key, value);
+
+        /// <summary>
+        /// Gets the actual object to be stored in the underlying cache.  This is usually equal
+        /// to the input, but might differ if it is <c>null</c>.
+        /// </summary>
+        /// <returns>The object to be stored in the underlying cache.</returns>
+        /// <param name="value">The value to store in the cache.</param>
+        object GetObjectToStore(TValue value) => ReferenceEquals(value, null) ? (object)NullObject.Instance : value;
+
+        /// <summary>
+        /// Gets the actual value to be returned from a cache retrieval.  This is usually equal
+        /// to the <paramref name="value"/> supplied, but might differ if it was a <see cref="NullObject"/>.
+        /// </summary>
+        /// <returns>The object to return to the caller for a retrieval.</returns>
+        /// <param name="value">The value retrieved from the underlying cache.</param>
+        TValue GetObjectToRetrieve(object value) => Equals(value, NullObject.Instance) ? default(TValue) : (TValue)value;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TypedObjectCacheAdapter{TKey, TValue}"/> class.
