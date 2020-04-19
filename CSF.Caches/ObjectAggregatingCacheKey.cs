@@ -34,7 +34,7 @@ namespace CSF
     /// a number of objects.  Each object is converted to a string and joined into the created
     /// cache key, with a separator value.
     /// </summary>
-    public class ObjectAggregatingCacheKey : IGetsCacheKey, IEquatable<ObjectAggregatingCacheKey>
+    public sealed class ObjectAggregatingCacheKey : IGetsCacheKey, IEquatable<ObjectAggregatingCacheKey>
     {
         const string defaultSeparator = "|";
 
