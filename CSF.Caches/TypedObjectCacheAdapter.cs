@@ -27,7 +27,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
-using System.Threading;
 
 namespace CSF
 {
@@ -165,8 +164,6 @@ namespace CSF
         /// </exception>
         public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueCreator)
         {
-            var cacheKey = GetCacheKey(key);
-
             if (TryGet(key, out TValue val)) return val;
 
             var newItem = valueCreator(key);
