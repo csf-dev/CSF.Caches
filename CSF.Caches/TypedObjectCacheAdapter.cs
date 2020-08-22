@@ -40,7 +40,6 @@ namespace CSF
         readonly ObjectCache cache;
         readonly Func<TKey, TValue, CacheItemPolicy> policyProvider;
         readonly string region;
-        readonly ReaderWriterLockSlim syncRoot;
 
         /// <summary>
         /// Adds a new object to the cache using the specified key.
@@ -157,11 +156,6 @@ namespace CSF
         /// <returns>A value from the cache (which might have just been created if it did not exist already).</returns>
         /// <param name="key">The key for which the value is to be cached.</param>
         /// <param name="valueCreator">A function which creates/gets a value for the key, if it does not already exist in the cache.</param>
-        /// <exception cref="T:CSF.InvalidCacheOperationException">
-        /// If no value is stored within the cache for the specified
-        /// key but the implementation was unable to add the item either. This typically points to a concurrency
-        /// problem of some kind, specific to the cache implementation.
-        /// </exception>
         /// <exception cref="T:System.InvalidCastException">If the value stored for the specified key is not of type <typeparamref name="TValue"/>.</exception>
         /// <exception cref="T:System.ArgumentNullException">
         /// If the <paramref name="key"/> is <c>null</c>.
@@ -173,29 +167,11 @@ namespace CSF
         {
             var cacheKey = GetCacheKey(key);
 
-            try
-            {
-                syncRoot.EnterUpgradeableReadLock();
+            if (TryGet(key, out TValue val)) return val;
 
-                if (cache.Contains(cacheKey, region))
-                    return GetObjectToRetrieve(cache.Get(cacheKey, region));
-
-                syncRoot.EnterWriteLock();
-
-                var newItem = valueCreator(key);
-                var addResult = cache.Add(cacheKey, GetObjectToStore(newItem), GetPolicy(key, newItem), region);
-                if (!addResult)
-                    throw new InvalidCacheOperationException($"{nameof(GetOrAdd)} did not find an item in the cache for key '{cacheKey}' but was unable to add one either.  Possible concurrent change to underlying cache?");
-
-                return newItem;
-            }
-            finally
-            {
-                if (syncRoot.IsUpgradeableReadLockHeld)
-                    syncRoot.ExitUpgradeableReadLock();
-                if (syncRoot.IsWriteLockHeld)
-                    syncRoot.ExitWriteLock();
-            }
+            var newItem = valueCreator(key);
+            TryAdd(key, newItem);
+            return newItem;
         }
 
         /// <summary>
@@ -347,8 +323,6 @@ namespace CSF
             this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
             this.policyProvider = policyProvider ?? ((k,v) => new CacheItemPolicy());
             this.region = region;
-
-            syncRoot = new ReaderWriterLockSlim();
         }
     }
 }
