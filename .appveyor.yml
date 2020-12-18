@@ -11,7 +11,7 @@ install:
 before_build:
     - cmd: dotnet --version
     - cmd: dotnet restore --verbosity m
-    - cmd: dotnet-sonarscanner begin /k:"CSF.Caches" /v:AppVeyor_build_%APPVEYOR_BUILD_NUMBER% /o:craigfowler-github /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login=%SONARCLOUD_SECRET_KEY% /d:sonar.cs.nunit.reportsPaths=%APPVEYOR_BUILD_FOLDER%\CSF.Caches.Tests\TestResults\TestResults.xml /d:sonar.cs.opencover.reportsPaths=%APPVEYOR_BUILD_FOLDER%\CSF.Caches.Tests\TestResults\coverage.opencover.xml
+    - cmd: dotnet sonarscanner begin /k:"CSF.Caches" /v:AppVeyor_build_%APPVEYOR_BUILD_NUMBER% /o:craigfowler-github /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login=%SONARCLOUD_SECRET_KEY% /d:sonar.cs.nunit.reportsPaths=%APPVEYOR_BUILD_FOLDER%\CSF.Caches.Tests\TestResults\TestResults.xml /d:sonar.cs.opencover.reportsPaths=%APPVEYOR_BUILD_FOLDER%\CSF.Caches.Tests\TestResults\coverage.opencover.xml
 
 build_script:
     - cmd: dotnet build
@@ -20,4 +20,4 @@ test_script:
     - cmd: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=\"json,opencover\" /p:CoverletOutput=\"TestResults/\"  --test-adapter-path:. --logger:\"nunit\"
 
 after_test:
-    - cmd: dotnet-sonarscanner end /d:"sonar.login=%SONARCLOUD_SECRET_KEY%"
+    - cmd: dotnet sonarscanner end /d:"sonar.login=%SONARCLOUD_SECRET_KEY%"
