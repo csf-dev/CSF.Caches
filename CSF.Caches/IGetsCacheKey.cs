@@ -30,6 +30,15 @@ namespace CSF
     /// An object which can get a <see cref="String"/> cache key, for storing values in a cache.
     /// Please consider implementing <see cref="IEquatable{T}"/> as well as this interface.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Good implementations of <see cref="IGetsCacheKey"/> are immutable, at least with regard
+    /// to the <see cref="GetCacheKey"/> function.  That means that it should be impossible to change
+    /// (aka mutate) the object in any way which would mean that it could later generate a different
+    /// cache key.  For example, the cache key should be based only on fields/properties which are
+    /// read-only.
+    /// </para>
+    /// </remarks>
     public interface IGetsCacheKey
     {
         /// <summary>

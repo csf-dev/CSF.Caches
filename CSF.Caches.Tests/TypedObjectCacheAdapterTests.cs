@@ -53,6 +53,13 @@ namespace CSF.Tests
         }
 
         [Test, AutoMoqData]
+        public void Add_does_not_throw_for_adding_null(PersonKey key)
+        {
+            var sut = GetSut();
+            Assert.That(() => sut.Add(key, null), Throws.Nothing);
+        }
+
+        [Test, AutoMoqData]
         public void TryAdd_returns_true_if_used_once(Person person)
         {
             var sut = GetSut();
@@ -121,18 +128,41 @@ namespace CSF.Tests
         }
 
         [Test, AutoMoqData]
-        public void TryGet_returns_item_if_it_is_in_cache(Person person)
+        public void TryGet_returns_true_if_item_is_in_cache(Person person)
         {
             var sut = GetSut();
             sut.Add(person.GetKey(), person);
-            Assert.That(() => sut.TryGet(person.GetKey()), Is.EqualTo(person));
+            Person result = null;
+            Assert.That(() => sut.TryGet(person.GetKey(), out result), Is.True);
+            Assert.That(result, Is.SameAs(person));
         }
 
         [Test, AutoMoqData]
-        public void TryGet_returns_null_if_it_is_not_in_cache(Person person)
+        public void TryGet_returns_false_if_item_is_not_in_cache(Person person)
         {
             var sut = GetSut();
+            Person result = null;
+            Assert.That(() => sut.TryGet(person.GetKey(), out result), Is.False);
+            Assert.That(result, Is.Not.SameAs(person));
+        }
+
+        [Test, AutoMoqData]
+        public void TryGet_obsolete_overload_returns_item_if_it_is_in_cache(Person person)
+        {
+            var sut = GetSut();
+            sut.Add(person.GetKey(), person);
+#pragma warning disable CS0618 // Type or member is obsolete
+            Assert.That(() => sut.TryGet(person.GetKey()), Is.SameAs(person));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        [Test, AutoMoqData]
+        public void TryGet_obsolete_overload_returns_null_if_it_is_not_in_cache(Person person)
+        {
+            var sut = GetSut();
+#pragma warning disable CS0618 // Type or member is obsolete
             Assert.That(() => sut.TryGet(person.GetKey()), Is.Null);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         [Test, AutoMoqData]
@@ -166,6 +196,14 @@ namespace CSF.Tests
             sut.Add(person1.GetKey(), person1);
             sut.AddOrReplace(person1.GetKey(), person2);
             Assert.That(() => sut.Get(person1.GetKey()), Is.EqualTo(person2));
+        }
+
+        [Test, AutoMoqData]
+        public void Add_then_Get_can_roundtrip_a_null_value(PersonKey key)
+        {
+            var sut = GetSut();
+            sut.Add(key, null);
+            Assert.That(() => sut.Get(key), Is.Null);
         }
 
         ICachesObjects<PersonKey, Person> GetSut(ObjectCache cache = null)

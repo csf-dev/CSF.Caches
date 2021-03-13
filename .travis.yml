@@ -4,7 +4,7 @@ solution: CSF.Caches.sln
 jobs:
     include:
         -   dotnet: 2.2.207
-            mono: latest
+            mono: none
 
 script:
     -   dotnet build

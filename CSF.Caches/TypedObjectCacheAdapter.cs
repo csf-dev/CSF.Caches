@@ -27,7 +27,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
-using System.Threading;
 
 namespace CSF
 {
@@ -40,7 +39,6 @@ namespace CSF
         readonly ObjectCache cache;
         readonly Func<TKey, TValue, CacheItemPolicy> policyProvider;
         readonly string region;
-        readonly ReaderWriterLockSlim syncRoot;
 
         /// <summary>
         /// Adds a new object to the cache using the specified key.
@@ -59,7 +57,7 @@ namespace CSF
         public void Add(TKey key, TValue value)
         {
             var cacheKey = GetCacheKey(key);
-            var result = cache.Add(cacheKey, value, GetPolicy(key, value), region);
+            var result = cache.Add(cacheKey, GetObjectToStore(value), GetPolicy(key, value), region);
             if (!result)
                 throw new InvalidCacheOperationException($"Cannot add to the cache because an item already exists with the key '{cacheKey}'.");
         }
@@ -78,7 +76,7 @@ namespace CSF
         public void AddOrReplace(TKey key, TValue value)
         {
             var cacheKey = GetCacheKey(key);
-            cache.Set(cacheKey, value, GetPolicy(key, value), region);
+            cache.Set(cacheKey, GetObjectToStore(value), GetPolicy(key, value), region);
         }
 
         /// <summary>
@@ -111,7 +109,7 @@ namespace CSF
             object result = cache.Get(cacheKey, region);
             if(ReferenceEquals(result, null))
                 throw new InvalidCacheOperationException($"Cannot get an item with the key '{cacheKey}' because no such item exists in the cache.");
-            return (TValue) result;
+            return GetObjectToRetrieve(result);
         }
 
         /// <summary>
@@ -140,7 +138,7 @@ namespace CSF
                 .Select(kvp =>
                 {
                     var key = cacheKeys[kvp.Key];
-                    var value = (TValue)kvp.Value;
+                    var value = GetObjectToRetrieve(kvp.Value);
                     return new CacheKeyAndItem<TKey, TValue>(key, value);
                 })
                 .ToArray();
@@ -157,11 +155,6 @@ namespace CSF
         /// <returns>A value from the cache (which might have just been created if it did not exist already).</returns>
         /// <param name="key">The key for which the value is to be cached.</param>
         /// <param name="valueCreator">A function which creates/gets a value for the key, if it does not already exist in the cache.</param>
-        /// <exception cref="T:CSF.InvalidCacheOperationException">
-        /// If no value is stored within the cache for the specified
-        /// key but the implementation was unable to add the item either. This typically points to a concurrency
-        /// problem of some kind, specific to the cache implementation.
-        /// </exception>
         /// <exception cref="T:System.InvalidCastException">If the value stored for the specified key is not of type <typeparamref name="TValue"/>.</exception>
         /// <exception cref="T:System.ArgumentNullException">
         /// If the <paramref name="key"/> is <c>null</c>.
@@ -171,31 +164,11 @@ namespace CSF
         /// </exception>
         public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueCreator)
         {
-            var cacheKey = GetCacheKey(key);
+            if (TryGet(key, out TValue val)) return val;
 
-            try
-            {
-                syncRoot.EnterUpgradeableReadLock();
-
-                if (cache.Contains(cacheKey, region))
-                    return (TValue)cache.Get(cacheKey, region);
-
-                syncRoot.EnterWriteLock();
-
-                var newItem = valueCreator(key);
-                var addResult = cache.Add(cacheKey, newItem, GetPolicy(key, newItem), region);
-                if (!addResult)
-                    throw new InvalidCacheOperationException($"{nameof(GetOrAdd)} did not find an item in the cache for key '{cacheKey}' but was unable to add one either.  Possible concurrent change to underlying cache?");
-
-                return newItem;
-            }
-            finally
-            {
-                if (syncRoot.IsUpgradeableReadLockHeld)
-                    syncRoot.ExitUpgradeableReadLock();
-                if (syncRoot.IsWriteLockHeld)
-                    syncRoot.ExitWriteLock();
-            }
+            var newItem = valueCreator(key);
+            TryAdd(key, newItem);
+            return newItem;
         }
 
         /// <summary>
@@ -232,7 +205,7 @@ namespace CSF
         public bool TryAdd(TKey key, TValue value)
         {
             var cacheKey = GetCacheKey(key);
-            return cache.Add(cacheKey, value, GetPolicy(key, value), region);
+            return cache.Add(cacheKey, GetObjectToStore(value), GetPolicy(key, value), region);
         }
 
         /// <summary>
@@ -248,11 +221,35 @@ namespace CSF
         /// <exception cref="T:System.ArgumentException">
         /// If the <paramref name="key"/> returns <c>null</c> from its <see cref="M:CSF.IGetsCacheKey.GetCacheKey"/> method.
         /// </exception>
+        [Obsolete("Instead, use bool TryGet(key, out item).  This overload will be removed in a future version.")]
         public TValue TryGet(TKey key)
         {
+            TryGet(key, out TValue item);
+            return item;
+        }
+
+        /// <summary>
+        /// Attempts to get an item from the cache using the specified key, returning a value
+        /// which indicates whether the item was retrieved successfully or not.
+        /// </summary>
+        /// <returns>A value which indicates whether the retrieval was a success or not.</returns>
+        /// <param name="key">The key for which the value is to be cached.</param>
+        /// <param name="item">The item retrieved from the cache.  This value is meaningless if the method returned <c>false</c>.</param>
+        /// <exception cref="InvalidCastException">If the value stored for the specified key is not of type <typeparamref name="TValue"/>.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// If the <paramref name="key"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// If the <paramref name="key"/> returns <c>null</c> from its <see cref="IGetsCacheKey.GetCacheKey"/> method.
+        /// </exception>
+        public bool TryGet(TKey key, out TValue item)
+        {
             var cacheKey = GetCacheKey(key);
-            object result = cache.Get(cacheKey, region);
-            return ReferenceEquals(result, null) ? default(TValue) : (TValue)result;
+            var result = cache.Get(cacheKey, region);
+            var success = !ReferenceEquals(result, null);
+
+            item = success ? GetObjectToRetrieve(result) : default(TValue);
+            return success;
         }
 
         /// <summary>
@@ -281,6 +278,22 @@ namespace CSF
             => policyProvider(key, value);
 
         /// <summary>
+        /// Gets the actual object to be stored in the underlying cache.  This is usually equal
+        /// to the input, but might differ if it is <c>null</c>.
+        /// </summary>
+        /// <returns>The object to be stored in the underlying cache.</returns>
+        /// <param name="value">The value to store in the cache.</param>
+        object GetObjectToStore(TValue value) => ReferenceEquals(value, null) ? (object)NullObject.Instance : value;
+
+        /// <summary>
+        /// Gets the actual value to be returned from a cache retrieval.  This is usually equal
+        /// to the <paramref name="value"/> supplied, but might differ if it was a <see cref="NullObject"/>.
+        /// </summary>
+        /// <returns>The object to return to the caller for a retrieval.</returns>
+        /// <param name="value">The value retrieved from the underlying cache.</param>
+        TValue GetObjectToRetrieve(object value) => Equals(value, NullObject.Instance) ? default(TValue) : (TValue)value;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TypedObjectCacheAdapter{TKey, TValue}"/> class.
         /// </summary>
         /// <remarks>
@@ -307,8 +320,6 @@ namespace CSF
             this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
             this.policyProvider = policyProvider ?? ((k,v) => new CacheItemPolicy());
             this.region = region;
-
-            syncRoot = new ReaderWriterLockSlim();
         }
     }
 }
