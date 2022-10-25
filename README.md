@@ -1,3 +1,14 @@
+# Archived: Use MS Extensions Caching instead
+
+This library is archived and no longer maintained.
+The reason is that Microsoft have released [Microsoft.Extensions.Caching.Abstractions] which provides far superior support and a very similar API for caching objects in a simple manner.
+In particular, former users of this library should consider migrating to [Microsoft.Extensions.Caching.Memory.IMemoryCache].
+
+[Microsoft.Extensions.Caching.Memory.IMemoryCache]: https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.caching.memory.imemorycache
+[Microsoft.Extensions.Caching.Abstractions]: https://www.nuget.org/packages/Microsoft.Extensions.Caching.Abstractions/
+
+---
+
 ## Typed cache adapter
 This package provides `ICachesObjects<TKey,TValue>`, which is a type-safe cache implementation.
 The implementation `TypedObjectCacheAdapter<TKey,TValue>` is an [adapter] for instances of [`System.Runtime.Caching.ObjectCache`].
